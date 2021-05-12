@@ -1,9 +1,18 @@
 package com.example.whitetile;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.Display;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,14 +22,12 @@ import androidx.appcompat.content.res.AppCompatResources;
 import java.util.Random;
 
 public class PlayActivity extends AppCompatActivity {
-    ImageView imageView11, imageView12, imageView13;
-    ImageView imageView21, imageView22, imageView23;
-    ImageView imageView31, imageView32, imageView33;
-    ImageView imageView41, imageView42, imageView43;
-    ImageView imageView51, imageView52, imageView53;
+    ImageView imageView1, imageView2, imageView3;
+    LinearLayout ll;
     TextView scoreView;
+    ObjectAnimator animator1, animator2, animator3;
     Drawable black, white, red;
-    int score;
+    int score, duration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,87 +37,119 @@ public class PlayActivity extends AppCompatActivity {
 
         scoreView = findViewById(R.id.score);
 
-        imageView11 = findViewById(R.id.image1_ll1);
-        imageView12 = findViewById(R.id.image2_ll1);
-        imageView13 = findViewById(R.id.image3_ll1);
+        duration = 10000;
 
-        imageView21 = findViewById(R.id.image1_ll2);
-        imageView22 = findViewById(R.id.image2_ll2);
-        imageView23 = findViewById(R.id.image3_ll2);
+        imageView1 = findViewById(R.id.image1_ll1);
+        imageView2 = findViewById(R.id.image2_ll1);
+        imageView3 = findViewById(R.id.image3_ll1);
+        imageView1.bringToFront();
+        imageView2.bringToFront();
+        imageView3.bringToFront();
 
-        imageView31 = findViewById(R.id.image1_ll3);
-        imageView32 = findViewById(R.id.image2_ll3);
-        imageView33 = findViewById(R.id.image3_ll3);
+        AnimatorListenerAdapter animatorListenerAdapter = new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
+            }
+        };
 
-        imageView41 = findViewById(R.id.image1_ll4);
-        imageView42 = findViewById(R.id.image2_ll4);
-        imageView43 = findViewById(R.id.image3_ll4);
+        ll = findViewById(R.id.linear);
+        ll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        imageView51 = findViewById(R.id.image1_ll5);
-        imageView52 = findViewById(R.id.image2_ll5);
-        imageView53 = findViewById(R.id.image3_ll5);
+        Display display = getWindowManager().getDefaultDisplay();
+        int height = display.getHeight();
+        int h = imageView1.getHeight();
+
+        animator1 = ObjectAnimator.ofFloat(imageView1, "translationY",
+                -h, height);
+        animator1.setDuration(duration);
+
+        animator2 = ObjectAnimator.ofFloat(imageView2, "translationY",
+                -h, height);
+        animator2.setDuration(duration);
+
+        animator3 = ObjectAnimator.ofFloat(imageView3, "translationY",
+                -h, height);
+        animator3.setDuration(duration);
+
+        animator1.addListener(animatorListenerAdapter);
+        animator2.addListener(animatorListenerAdapter);
+        animator3.addListener(animatorListenerAdapter);
 
         black = AppCompatResources.getDrawable(PlayActivity.this, R.drawable.tile);
         white = AppCompatResources.getDrawable(PlayActivity.this, R.drawable.white);
         red = AppCompatResources.getDrawable(PlayActivity.this, R.drawable.red);
 
-        imageView11.setOnClickListener(new View.OnClickListener() {
+        imageView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (imageView1.getDrawable() == black) {
+                    success(animator1, imageView1);
+                } else {
+                    imageView1.setImageDrawable(red);
+                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        imageView2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (imageView2.getDrawable() == black) {
+                    success(animator2, imageView2);
+                } else {
+                    animator1.end();
+                    animator2.end();
+                    animator3.end();
+                    imageView2.setImageDrawable(red);
+                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        imageView3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (imageView3.getDrawable() == black) {
+                    success(animator3, imageView3);
+                } else {
+                    animator1.end();
+                    animator2.end();
+                    animator3.end();
+                    imageView3.setImageDrawable(red);
+                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        generateTile();
+    }
 
-                if (imageView11.getDrawable() == black) {
-                    imageView11.setImageDrawable(white);
-                    score++;
-                    generateTile();
-                } else {
-                    imageView11.setImageDrawable(red);
-                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        imageView12.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (imageView12.getDrawable() == black) {
-                    imageView12.setImageDrawable(white);
-                    score++;
-                    generateTile();
-                } else {
-                    imageView12.setImageDrawable(red);
-                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        imageView13.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (imageView13.getDrawable() == black) {
-                    imageView13.setImageDrawable(white);
-                    score++;
-                    generateTile();
-                } else {
-                    imageView13.setImageDrawable(red);
-                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
+    private void success(ObjectAnimator animator, ImageView imageView) {
+        imageView.setImageDrawable(white);
+        score++;
         generateTile();
     }
 
     private void generateTile() {
+        duration += 100;
         Random random = new Random();
         int layoutNo = random.nextInt(3) + 1;
         scoreView.setText(String.valueOf(score));
         switch (layoutNo) {
             case 1:
-                imageView11.setImageDrawable(black);
+                imageView1.setImageDrawable(black);
+                animator1.start();
                 break;
             case 2:
-                imageView12.setImageDrawable(black);
+                imageView2.setImageDrawable(black);
+                animator2.start();
                 break;
             case 3:
-                imageView13.setImageDrawable(black);
+                imageView3.setImageDrawable(black);
+                animator3.start();
                 break;
         }
     }
