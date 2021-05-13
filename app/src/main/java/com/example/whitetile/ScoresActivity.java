@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class ScoresActivity extends AppCompatActivity {
     private String scores;
-    private List<String> scoreList;
+    private List<Integer> scoreList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +29,21 @@ public class ScoresActivity extends AppCompatActivity {
 
         ListView listView = findViewById(R.id.list);
 
-        java.util.Collections.sort(scoreList);
+        java.util.Collections.reverse(scoreList);
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, scoreList);
+        ArrayAdapter<Integer> arrayAdapter = new ArrayAdapter<Integer>(this, android.R.layout.simple_list_item_1, scoreList);
         listView.setAdapter(arrayAdapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String message = "Hi! I played WhiteTile and my score was " + scoreList.get(position) + "! =)";
+                Intent share = new Intent(Intent.ACTION_SEND);
+                share.setType("text/plain");
+                share.putExtra(Intent.EXTRA_TEXT, message);
+                startActivity(Intent.createChooser(share, "Share your score!"));
+            }
+        });
 
         Button clear = findViewById(R.id.clear);
         clear.setOnClickListener(new View.OnClickListener() {
@@ -48,7 +60,10 @@ public class ScoresActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences(PlayActivity.SHARED_PREFERENCES, MODE_PRIVATE);
         scores = sharedPreferences.getString(PlayActivity.SCORES, "");
         List<String> temp = Arrays.asList(scores.split(","));
-        scoreList.addAll(temp);
+        for (String s : temp) {
+            scoreList.add(Integer.parseInt(s));
+        }
+        java.util.Collections.sort(scoreList);
     }
 
     private void clearPreferences() {

@@ -104,7 +104,7 @@ public class PlayActivity extends AppCompatActivity {
                     break;
                 case 3:
                     RelativeLayout relativeLayout3 = findViewById(R.id.relative3);
-                    createIV(relativeLayout3, mediaPlayer1);
+                    createIV(relativeLayout3, mediaPlayer3);
                     break;
             }
             handler.postDelayed(this::generateTile, duration / 10); //This posts the task AGAIN, with 10 seconds delay}
