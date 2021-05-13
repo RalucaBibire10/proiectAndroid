@@ -3,150 +3,196 @@ package com.example.whitetile;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Display;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class PlayActivity extends AppCompatActivity {
-    ImageView imageView1, imageView2, imageView3;
-    LinearLayout ll;
-    TextView scoreView;
-    ObjectAnimator animator1, animator2, animator3;
-    Drawable black, white, red;
-    int score, duration;
+    private LinearLayout ll;
+    private TextView scoreView;
+    private Drawable black, white, red;
+    private MediaPlayer mediaPlayer1, mediaPlayer2, mediaPlayer3, gameOver;
+    private List<Tile> tiles;
+    private int score, duration, h, height;
+    private boolean end;
+    private LinearInterpolator linearInterpolator;
+    protected static final String SHARED_PREFERENCES = "WhiteTileScores";
+    protected static final String SCORES = "SCORES";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
         score = 0;
+        end = false;
 
         scoreView = findViewById(R.id.score);
 
         duration = 10000;
 
-        imageView1 = findViewById(R.id.image1_ll1);
-        imageView2 = findViewById(R.id.image2_ll1);
-        imageView3 = findViewById(R.id.image3_ll1);
-        imageView1.bringToFront();
-        imageView2.bringToFront();
-        imageView3.bringToFront();
-
-        AnimatorListenerAdapter animatorListenerAdapter = new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-            }
-        };
+        mediaPlayer1 = MediaPlayer.create(this, R.raw.sound1);
+        mediaPlayer2 = MediaPlayer.create(this, R.raw.sound2);
+        mediaPlayer3 = MediaPlayer.create(this, R.raw.sound3);
+        gameOver = MediaPlayer.create(this, R.raw.lost);
 
         ll = findViewById(R.id.linear);
         ll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
+                endGame();
             }
         });
+        tiles = new ArrayList<>();
+        linearInterpolator = new LinearInterpolator();
 
         Display display = getWindowManager().getDefaultDisplay();
-        int height = display.getHeight();
-        int h = imageView1.getHeight();
-
-        animator1 = ObjectAnimator.ofFloat(imageView1, "translationY",
-                -h, height);
-        animator1.setDuration(duration);
-
-        animator2 = ObjectAnimator.ofFloat(imageView2, "translationY",
-                -h, height);
-        animator2.setDuration(duration);
-
-        animator3 = ObjectAnimator.ofFloat(imageView3, "translationY",
-                -h, height);
-        animator3.setDuration(duration);
-
-        animator1.addListener(animatorListenerAdapter);
-        animator2.addListener(animatorListenerAdapter);
-        animator3.addListener(animatorListenerAdapter);
+        height = display.getHeight();
+        h = (int) getResources().getDimension(R.dimen.image_height);
 
         black = AppCompatResources.getDrawable(PlayActivity.this, R.drawable.tile);
         white = AppCompatResources.getDrawable(PlayActivity.this, R.drawable.white);
         red = AppCompatResources.getDrawable(PlayActivity.this, R.drawable.red);
 
-        imageView1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (imageView1.getDrawable() == black) {
-                    success(animator1, imageView1);
-                } else {
-                    imageView1.setImageDrawable(red);
-                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        imageView2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (imageView2.getDrawable() == black) {
-                    success(animator2, imageView2);
-                } else {
-                    animator1.end();
-                    animator2.end();
-                    animator3.end();
-                    imageView2.setImageDrawable(red);
-                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        imageView3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (imageView3.getDrawable() == black) {
-                    success(animator3, imageView3);
-                } else {
-                    animator1.end();
-                    animator2.end();
-                    animator3.end();
-                    imageView3.setImageDrawable(red);
-                    Toast.makeText(PlayActivity.this, "Game over!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        generateTile();
+        startGame();
     }
 
-    private void success(ObjectAnimator animator, ImageView imageView) {
-        imageView.setImageDrawable(white);
+    private void success(Tile tile) {
+        tile.getImageView().setImageDrawable(white);
+        tile.getMediaPlayer().start();
+        tile.setCanceled(true);
+        tile.getAnimator().cancel();
         score++;
-        generateTile();
+        scoreView.setText(String.valueOf(score));
+        if (duration > 100) {
+            duration -= 100;
+        }
+        tiles.remove(tile);
+        //generateTile();
     }
 
     private void generateTile() {
-        duration += 100;
-        Random random = new Random();
-        int layoutNo = random.nextInt(3) + 1;
-        scoreView.setText(String.valueOf(score));
-        switch (layoutNo) {
-            case 1:
-                imageView1.setImageDrawable(black);
-                animator1.start();
-                break;
-            case 2:
-                imageView2.setImageDrawable(black);
-                animator2.start();
-                break;
-            case 3:
-                imageView3.setImageDrawable(black);
-                animator3.start();
-                break;
+        Handler handler = new Handler(Looper.getMainLooper());
+        if (!end) {
+            Random random = new Random();
+            int layoutNo = random.nextInt(3) + 1;
+            switch (layoutNo) {
+                case 1:
+                    RelativeLayout relativeLayout1 = findViewById(R.id.relative1);
+                    createIV(relativeLayout1, mediaPlayer1);
+                    break;
+                case 2:
+                    RelativeLayout relativeLayout2 = findViewById(R.id.relative2);
+                    createIV(relativeLayout2, mediaPlayer2);
+                    break;
+                case 3:
+                    RelativeLayout relativeLayout3 = findViewById(R.id.relative3);
+                    createIV(relativeLayout3, mediaPlayer1);
+                    break;
+            }
+            handler.postDelayed(this::generateTile, duration / 10); //This posts the task AGAIN, with 10 seconds delay}
+        } else {
+            handler.removeCallbacksAndMessages(null);
         }
+    }
+
+    private void imageChanged(ObjectAnimator animator) {
+        animator.start();
+    }
+
+    private void createIV(RelativeLayout relativeLayout, MediaPlayer mediaPlayer) {
+        ImageView imageView = new ImageView(relativeLayout.getContext());
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, h);
+        imageView.setLayoutParams(lp);
+        imageView.setImageDrawable(black);
+        imageView.bringToFront();
+        relativeLayout.addView(imageView);
+
+        ObjectAnimator animator = ObjectAnimator.ofFloat(imageView, "translationY",
+                -h, height);
+
+        animator.setDuration(duration);
+        animator.setInterpolator(linearInterpolator);
+
+        Tile t = new Tile(mediaPlayer, animator, imageView, relativeLayout);
+        tiles.add(t);
+
+        imageChanged(t.getAnimator());
+
+        t.getAnimator().addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (!t.getIsCanceled()) {
+                    endGame();
+                } else t.setCanceled(true);
+            }
+        });
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (t.getImageView().getDrawable() == black) {
+                    t.setCanceled(true);
+                    success(t);
+                }
+            }
+        });
+    }
+
+    private void startGame() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(this::generateTile, duration / 10);
+    }
+
+    private void endGame() {
+        gameOver.start();
+        for (Tile tile : tiles) {
+            tile.setCanceled(true);
+            tile.getAnimator().cancel();
+            tile.getMediaPlayer().stop();
+        }
+        end = true;
+
+        saveScore();
+
+        GameOverDialog dialog = new GameOverDialog(score);
+        dialog.show(getSupportFragmentManager(), "Dialog");
+    }
+
+    protected void saveScore() {
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        String scores = sharedPreferences.getString(SCORES, "");
+        if (scores.equals("")) {
+            scores = String.valueOf(score);
+        } else {
+            scores = scores + "," + score;
+        }
+        editor.putString(SCORES, scores);
+        editor.apply();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

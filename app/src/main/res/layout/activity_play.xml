@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/linear"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
     android:orientation="vertical"
     android:weightSum="5"
-    android:id="@+id/linear"
     tools:context=".PlayActivity">
 
     <LinearLayout
@@ -30,6 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:text="0"
             android:textAllCaps="true"
             android:textColor="@color/purple_500"
             android:textSize="20sp"
@@ -43,29 +44,23 @@
         android:orientation="horizontal"
         android:weightSum="3">
 
-        <ImageView
-            android:elevation="10dp"
-            android:id="@+id/image1_ll1"
+        <RelativeLayout
+            android:id="@+id/relative1"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_weight="1"
-            android:scaleType="centerInside" />
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
-        <ImageView
-            android:elevation="10dp"
-            android:id="@+id/image2_ll1"
+        <RelativeLayout
+            android:id="@+id/relative2"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_weight="1"
-            android:scaleType="centerInside" />
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
-        <ImageView
-            android:elevation="10dp"
-            android:id="@+id/image3_ll1"
+        <RelativeLayout
+            android:id="@+id/relative3"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_weight="1"
-            android:scaleType="centerInside" />
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
     </LinearLayout>
 </LinearLayout>

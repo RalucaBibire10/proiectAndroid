@@ -24,6 +24,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), PlayActivity.class);
                 startActivity(intent);
+                finish();
+            }
+        });
+
+        scoresButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ScoresActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
     }
