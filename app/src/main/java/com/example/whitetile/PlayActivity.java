@@ -151,6 +151,8 @@ public class PlayActivity extends AppCompatActivity {
                 if (t.getImageView().getDrawable() == black) {
                     t.setCanceled(true);
                     success(t);
+                }else if (t.getImageView().getDrawable()==white){
+                    endGame();
                 }
             }
         });
